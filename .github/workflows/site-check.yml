@@ -1,0 +1,27 @@
+name: EBACO Website Check
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  smoke-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate required files
+        run: |
+          test -f index.html
+          test -f favicon.svg
+          test -f robots.txt
+          test -f sitemap.xml
+          grep -q "EBACO Kuwait Trading Company" index.html
+          grep -q "+96524335840" index.html
+          grep -q "linkedin.com/company/ebaco-kuwait-trading-company" index.html
+      - name: Serve site
+        run: |
+          python3 -m http.server 8080 --directory . >/tmp/ebaco-server.log 2>&1 &
+          sleep 2
+          curl --fail --silent --show-error http://127.0.0.1:8080/ | grep -q "EBACO"
+          curl --fail --silent --show-error http://127.0.0.1:8080/robots.txt | grep -q "Sitemap"
+          curl --fail --silent --show-error http://127.0.0.1:8080/sitemap.xml | grep -q "urlset"
